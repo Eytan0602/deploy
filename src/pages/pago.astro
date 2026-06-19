@@ -1,0 +1,831 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Pago de Permiso - Policía Nacional del Perú" bodyClass="no-hero">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="breadcrumb">
+      <a href="/"><i class="fas fa-home"></i> Inicio</a>
+      <span><i class="fas fa-chevron-right"></i></span>
+      <a href="/dni"><i class="fas fa-id-card"></i> DNI</a>
+      <span><i class="fas fa-chevron-right"></i></span>
+      <a href="/licencia"><i class="fas fa-car"></i> Licencia</a>
+      <span><i class="fas fa-chevron-right"></i></span>
+      <a href="/registro-vehicular"><i class="fas fa-car-side"></i> Vehículo</a>
+      <span><i class="fas fa-chevron-right"></i></span>
+      <a href="/soat"><i class="fas fa-shield-alt"></i> SOAT</a>
+      <span><i class="fas fa-chevron-right"></i></span>
+      <span>Pago</span>
+    </nav>
+
+    <!-- Auth Prompt (hidden if logged in) -->
+    <div id="pago-auth-required" class="info-box" style="display: none; background: rgba(220, 53, 69, 0.1); border-color: var(--error-color);">
+      <h3 style="color: var(--error-color); margin-bottom: 0.5rem;"><i class="fas fa-exclamation-triangle"></i> Inicio de Sesión Requerido</h3>
+      <p style="color: var(--text-primary); margin-bottom: 1rem;">Para asociar tu pago de forma oficial, debes iniciar sesión con tu cuenta PNP.</p>
+      <a href="/login" class="btn btn-primary" style="display: inline-flex; width: auto; padding: 0.5rem 1.5rem;">Iniciar Sesión</a>
+    </div>
+
+    <div class="info-box">
+      <i class="fas fa-info-circle"></i>
+      <p>Este pago es necesario para procesar su registro y otorgarle el permiso de lunas polarizadas.</p>
+    </div>
+
+    <div class="monto-box">
+      <h2>Monto a pagar</h2>
+      <div class="monto">S/. 120.00</div>
+    </div>
+
+    <div class="form-card" id="pago-form-card">
+      <form id="formPago">
+        <h3 style="text-align: center; margin-bottom: 2rem; color: var(--accent-green);">
+          <i class="fas fa-credit-card"></i> Método de Pago
+        </h3>
+
+        <div class="metodo-pago">
+          <input type="radio" id="tarjeta" name="metodo" value="tarjeta" checked>
+          <label for="tarjeta">
+            <i class="fas fa-credit-card"></i>
+            <span>Tarjeta</span>
+          </label>
+
+          <input type="radio" id="banco" name="metodo" value="banco">
+          <label for="banco">
+            <i class="fas fa-university"></i>
+            <span>Banco</span>
+          </label>
+
+          <input type="radio" id="yape" name="metodo" value="yape">
+          <label for="yape">
+            <i class="fas fa-mobile-alt"></i>
+            <span>Yape</span>
+          </label>
+        </div>
+
+        <!-- TARJETA -->
+        <div id="formTarjeta" class="section-pago active">
+          <div class="form-group">
+            <label for="bancoTarjeta">Banco Emisor</label>
+            <select id="bancoTarjeta" name="banco" class="form-control" required>
+              <option value="" disabled selected>Seleccione su banco</option>
+              <option value="BBVA">BBVA</option>
+              <option value="Interbank">Interbank</option>
+              <option value="BCP">BCP</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="numeroTarjeta">Número de Tarjeta</label>
+            <input type="password" name="tarjeta" id="numeroTarjeta" class="form-control"
+                   minlength="16" maxlength="16" placeholder="0000 0000 0000 0000" required>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label for="cvc">CVC</label>
+              <input type="password" name="cvc" id="cvc" class="form-control"
+                     minlength="3" maxlength="4" placeholder="000" required>
+            </div>
+
+            <div class="form-group">
+              <label for="mesAnio">Vencimiento</label>
+              <input type="month" name="mesAnio" id="mesAnio" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="codigo-pago" id="codigoPagoTarjeta" style="display: none;">
+            <p><i class="fas fa-barcode"></i> <strong>Código de Pago Generado</strong></p>
+            <div class="codigo" id="tarjetaGenCode">ABC12345</div>
+            <p>Copie este código y péguelo abajo para validar su pago.</p>
+          </div>
+        </div>
+
+        <!-- BANCO -->
+        <div id="formBanco" class="section-pago" style="display: none;">
+          <p style="text-align: center; color: var(--text-secondary); margin-bottom: 1rem;">
+            Seleccione su banco para realizar la transferencia
+          </p>
+          <div class="bancos">
+            <img src="https://gestion.pe/resizer/8x2AlIgYkCU3SG-UJ2-HozYZKCc=/1200x583/smart/filters:format(jpeg):quality(75)/arc-anglerfish-arc2-prod-elcomercio.s3.amazonaws.com/public/YHZXKA5EN5CCNO3IYKOSJARW7M.jpg" 
+                 data-banco="BBVA" alt="BBVA">
+            <img src="https://images.seeklogo.com/logo-png/28/1/interbank-2015-logo-png_seeklogo-285084.png" 
+                 data-banco="Interbank" alt="Interbank">
+            <img src="https://www.logotypes101.com/logos/611/B437AB14955AB7689AD24FC300E95928/bcp__logo_2014.png" 
+                 data-banco="BCP" alt="BCP">
+          </div>
+          <input type="hidden" id="selectBanco" name="banco" />
+
+          <div class="codigo-pago" id="codigoPagoBanco" style="display: none;">
+            <p><i class="fas fa-university"></i> <strong>Datos para Transferencia</strong></p>
+            <div class="codigo" id="bancoGenCode">ABC12345</div>
+            <p>Realice su pago en la banca en línea de <strong id="bancoTransferLabel"></strong> usando este código.</p>
+          </div>
+        </div>
+
+        <!-- YAPE -->
+        <div id="formYape" class="section-pago" style="display: none;">
+          <div class="qr-section" style="text-align: center;">
+            <p style="font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">
+              Escanee el código QR con su aplicación Yape
+            </p>
+            <img src="/JS/imagenes/yape.jpg" alt="Código QR Yape" style="max-width: 180px; border-radius: 12px; margin: 0 auto; display: block;" />
+            <p style="margin-top: 1rem; color: var(--text-secondary);">
+              <i class="fas fa-building"></i> <strong>Banco de la Nación</strong>
+            </p>
+            
+            <div class="codigo-pago" id="codigoPagoYape" style="display: none; margin-top: 1rem;">
+              <p><i class="fas fa-mobile-alt"></i> <strong>Código de Pago</strong></p>
+              <div class="codigo" id="yapeGenCode">ABC12345</div>
+              <p>Después de pagar, ingrese este código para validar su transacción.</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+          <a href="/soat" class="btn btn-secondary" style="flex: 1;">
+            <i class="fas fa-arrow-left"></i> Volver
+          </a>
+          <button type="submit" class="btn btn-primary" id="btnGenerarCodigo" style="flex: 2;">
+            Generar Código de Pago
+          </button>
+        </div>
+      </form>
+
+      <!-- VALIDACIÓN -->
+      <div class="validacion-form" id="validacionFormCard" style="display: none; margin-top: 2rem; border-top: 2px solid var(--border-color); padding-top: 2rem;">
+        <h3><i class="fas fa-check-circle"></i> Validar Pago</h3>
+        <form id="formValidarPago">
+          <div class="form-group">
+            <label for="codigoIngresado">Ingrese el código de pago</label>
+            <input type="text" id="codigoIngresado" class="form-control" maxlength="8" placeholder="ABC12345" required style="text-transform: uppercase; font-weight: bold; text-align: center; letter-spacing: 2px;" />
+          </div>
+          <button type="submit" class="btn btn-primary" id="btnValidarCodigo">
+            <i class="fas fa-check"></i> Validar Código
+          </button>
+          <div class="alert-error" id="validationErrorAlert" style="display: none;">Código de pago inválido. Por favor intente de nuevo.</div>
+        </form>
+      </div>
+
+      <!-- PAGO VALIDADO -->
+      <div class="alert-success" id="pagoExitosoCard" style="display: none; margin-top: 2rem; border: 1px solid var(--success-color);">
+        <h3><i class="fas fa-check-circle"></i> ¡Pago Validado Correctamente!</h3>
+        <p style="margin: 1rem 0; line-height: 1.6;">
+          Gracias por completar su pago. Su solicitud ha sido registrada de manera exitosa. 
+          <br><br>
+          <strong>El trámite se encuentra actualmente en estado: <span style="color: var(--accent-yellow);">EN PROCESO</span>. Puede hacerle seguimiento en la sección del menú.</strong>
+        </p>
+        <div style="margin-top: 2rem; text-align: center;">
+          <a href="/mis-tramites" class="btn btn-primary" style="display: inline-flex; width: auto; padding: 0.75rem 2rem;">
+            <i class="fas fa-tasks"></i> Ir a Mis Trámites
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    import { supabase } from '../lib/supabase/client';
+
+    const authPrompt = document.getElementById('pago-auth-required');
+    const formCard = document.getElementById('pago-form-card');
+    const formPago = document.getElementById('formPago') as HTMLFormElement;
+    const formValidar = document.getElementById('formValidarPago') as HTMLFormElement;
+
+    const formTarjeta = document.getElementById('formTarjeta');
+    const formBanco = document.getElementById('formBanco');
+    const formYape = document.getElementById('formYape');
+
+    const selectBanco = document.getElementById('selectBanco') as HTMLInputElement;
+    const validationFormCard = document.getElementById('validacionFormCard');
+    const validationErrorAlert = document.getElementById('validationErrorAlert');
+    const pagoExitosoCard = document.getElementById('pagoExitosoCard');
+
+    let currentUserId: string | null = null;
+    let currentGeneratedCode = '';
+
+    // Auth and protection check
+    window.addEventListener('DOMContentLoaded', async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        if (authPrompt) authPrompt.style.display = 'block';
+        // Disable inputs
+        formPago.querySelectorAll('input, button, select').forEach(el => {
+          (el as any).disabled = true;
+        });
+        return;
+      }
+
+      currentUserId = session.user.id;
+    });
+
+    // Handle Payment Options Toggles
+    const radios = document.querySelectorAll('input[name="metodo"]');
+    radios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const val = (e.target as HTMLInputElement).value;
+        
+        if (formTarjeta) formTarjeta.style.display = val === 'tarjeta' ? 'block' : 'none';
+        if (formBanco) formBanco.style.display = val === 'banco' ? 'block' : 'none';
+        if (formYape) formYape.style.display = val === 'yape' ? 'block' : 'none';
+
+        // Clear code displays
+        document.getElementById('codigoPagoTarjeta')!.style.display = 'none';
+        document.getElementById('codigoPagoBanco')!.style.display = 'none';
+        document.getElementById('codigoPagoYape')!.style.display = 'none';
+        if (validationFormCard) validationFormCard.style.display = 'none';
+        currentGeneratedCode = '';
+
+        // Update requirements
+        const cardNum = document.getElementById('numeroTarjeta') as HTMLInputElement;
+        const cardCvc = document.getElementById('cvc') as HTMLInputElement;
+        const cardDate = document.getElementById('mesAnio') as HTMLInputElement;
+        const bankSelect = document.getElementById('bancoTarjeta') as HTMLSelectElement;
+
+        if (val === 'tarjeta') {
+          cardNum.required = true;
+          cardCvc.required = true;
+          cardDate.required = true;
+          bankSelect.required = true;
+        } else {
+          cardNum.required = false;
+          cardCvc.required = false;
+          cardDate.required = false;
+          bankSelect.required = false;
+        }
+      });
+    });
+
+    // Handle bank transfer logos click selection
+    document.querySelectorAll('.bancos img').forEach(img => {
+      img.addEventListener('click', () => {
+        document.querySelectorAll('.bancos img').forEach(i => i.classList.remove('selected'));
+        img.classList.add('selected');
+        
+        const bankName = img.getAttribute('data-banco') || '';
+        selectBanco.value = bankName;
+
+        // Auto trigger generation code on logo click
+        generatePaymentCode();
+      });
+    });
+
+    // Generate validation code action
+    formPago?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      generatePaymentCode();
+    });
+
+    const generatePaymentCode = () => {
+      const activeMethod = (formPago.querySelector('input[name="metodo"]:checked') as HTMLInputElement).value;
+      
+      if (activeMethod === 'banco' && !selectBanco.value) {
+        alert('Por favor seleccione su banco emisor.');
+        return;
+      }
+
+      // Generate validation code
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = '';
+      for (let i = 0; i < 8; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      currentGeneratedCode = code;
+
+      // Render code depending on method
+      if (activeMethod === 'tarjeta') {
+        document.getElementById('tarjetaGenCode')!.textContent = code;
+        document.getElementById('codigoPagoTarjeta')!.style.display = 'block';
+      } else if (activeMethod === 'banco') {
+        document.getElementById('bancoGenCode')!.textContent = code;
+        document.getElementById('bancoTransferLabel')!.textContent = selectBanco.value;
+        document.getElementById('codigoPagoBanco')!.style.display = 'block';
+      } else if (activeMethod === 'yape') {
+        document.getElementById('yapeGenCode')!.textContent = code;
+        document.getElementById('codigoPagoYape')!.style.display = 'block';
+      }
+
+      // Show validator form
+      if (validationFormCard) {
+        validationFormCard.style.display = 'block';
+        validationFormCard.scrollIntoView({ behavior: 'smooth' });
+      }
+    };
+
+    // Validar validation form submit
+    formValidar?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const typed = (document.getElementById('codigoIngresado') as HTMLInputElement).value.trim().toUpperCase();
+
+      if (typed !== currentGeneratedCode) {
+        if (validationErrorAlert) validationErrorAlert.style.display = 'block';
+        return;
+      }
+
+      if (validationErrorAlert) validationErrorAlert.style.display = 'none';
+
+      // Validation success! Write permission request to database
+      try {
+        const dni = sessionStorage.getItem('dni_tramite');
+        const nombreCompleto = sessionStorage.getItem('nombre_tramite');
+        const placa = sessionStorage.getItem('placa_tramite');
+        const soatId = sessionStorage.getItem('soat_id_tramite');
+
+        if (!dni || !placa || !currentUserId) {
+          throw new Error('Información de trámite incompleta. Reinicie el proceso.');
+        }
+
+        const payload = {
+          dni,
+          nombre_completo: nombreCompleto,
+          placa_vehiculo: placa,
+          licencia_valida: true,
+          soat_vigente: true,
+          estado: 'EN_PROCESO',
+          usuario_id: currentUserId,
+          soat_id: soatId ? parseInt(soatId) : null,
+          fecha_solicitud: new Date().toISOString().split('T')[0]
+        };
+
+        const { error } = await supabase
+          .from('permisos_lunas_polarizadas')
+          .insert(payload);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        // Show success card and hide payment forms
+        formPago.style.display = 'none';
+        if (validationFormCard) validationFormCard.style.display = 'none';
+        if (pagoExitosoCard) pagoExitosoCard.style.display = 'block';
+
+        // Clear session
+        sessionStorage.removeItem('dni_tramite');
+        sessionStorage.removeItem('nombre_tramite');
+        sessionStorage.removeItem('placa_tramite');
+        sessionStorage.removeItem('soat_id_tramite');
+        sessionStorage.removeItem('modelo_vehiculo');
+        sessionStorage.removeItem('color_vehiculo');
+
+      } catch (err: any) {
+        alert(`Error al registrar el trámite: ${err.message}`);
+      }
+    });
+
+    // Theme toggler
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      document.getElementById('themeIcon')!.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    }
+  </script>
+
+  <style>
+    .container {
+      max-width: 700px;
+      margin: 3rem auto;
+      padding: 0 2rem;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .breadcrumb a {
+      color: var(--accent-green);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .breadcrumb a:hover {
+      color: #218838;
+    }
+
+    .form-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2.5rem;
+      box-shadow: var(--shadow);
+      animation: fadeInUp 0.6s ease;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .form-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .form-header .icon {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, var(--accent-green), #218838);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .form-header .icon i {
+      font-size: 2rem;
+      color: white;
+    }
+
+    .form-header h1 {
+      font-size: 1.75rem;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-header p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .form-group label .required {
+      color: var(--error-color);
+      margin-left: 0.25rem;
+    }
+
+    .input-icon {
+      position: relative;
+    }
+
+    .input-icon i {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.875rem 1rem 0.875rem 3rem;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 1rem;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--accent-green);
+      box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    }
+
+    .error-message {
+      color: var(--error-color);
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+      display: none;
+      font-weight: 500;
+    }
+
+    .success-message {
+      color: var(--success-color);
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+      display: none;
+      font-weight: 500;
+    }
+
+    .alert {
+      padding: 1rem 1.25rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      animation: slideIn 0.4s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .alert-error {
+      background: rgba(220, 53, 69, 0.1);
+      border: 1px solid var(--error-color);
+      color: var(--error-color);
+    }
+
+    .alert-success {
+      background: rgba(40, 167, 69, 0.1);
+      border: 1px solid var(--success-color);
+      color: var(--success-color);
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(33, 136, 56, 0.05));
+      border: 1px solid var(--accent-green);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .info-box h3 {
+      color: var(--accent-green);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.1rem;
+    }
+
+    .info-box ul {
+      margin-left: 1.5rem;
+      color: var(--text-secondary);
+      line-height: 1.8;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 2px solid var(--border-color);
+    }
+
+    .btn {
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      background: var(--accent-green);
+      color: white;
+      flex: 1;
+    }
+
+    .btn-primary:hover {
+      background: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-secondary {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 2px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border-color);
+    }
+
+    /* ===== PAYMENT SPECIFIC STYLES ===== */
+    .monto-box {
+      background: linear-gradient(135deg, var(--accent-dark), #143520);
+      color: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow);
+    }
+
+    .monto-box .monto {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent-yellow);
+      margin-top: 0.5rem;
+    }
+
+    .metodo-pago {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .metodo-card {
+      background: var(--bg-secondary);
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1.5rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .metodo-card:hover {
+      border-color: var(--accent-green);
+      transform: translateY(-3px);
+    }
+
+    .metodo-card.active {
+      border-color: var(--accent-green);
+      background: rgba(40, 167, 69, 0.05);
+    }
+
+    .metodo-card i {
+      font-size: 2rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.75rem;
+    }
+
+    .metodo-card.active i {
+      color: var(--accent-green);
+    }
+
+    .metodo-card h3 {
+      font-size: 1rem;
+      color: var(--text-primary);
+    }
+
+    .section-pago {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .section-pago.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .bancos {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .bancos img {
+      width: 100%;
+      height: 60px;
+      object-fit: contain;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: white;
+      padding: 0.25rem;
+    }
+
+    .bancos img:hover {
+      border-color: var(--accent-green);
+    }
+
+    .bancos img.selected {
+      border-color: var(--accent-green);
+      box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
+    }
+
+    .codigo-pago {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .codigo-pago .codigo {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: 2px;
+      margin: 0.5rem 0;
+    }
+
+    .qr-section {
+      text-align: center;
+      margin-top: 1.5rem;
+    }
+
+    .qr-section img {
+      width: 200px;
+      height: 200px;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      background: white;
+      padding: 0.5rem;
+    }
+
+    .validacion-form {
+      border-top: 1px solid var(--border-color);
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 1rem;
+        margin: 2rem auto;
+      }
+
+      .form-card {
+        padding: 1.5rem;
+      }
+
+      .branding {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .logo img {
+        width: 50px;
+        height: 50px;
+      }
+
+      .site-title {
+        font-size: 1.25rem;
+      }
+
+      .form-header h1 {
+        font-size: 1.5rem;
+      }
+
+      .form-actions {
+        flex-direction: column-reverse;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .theme-toggle {
+        top: 10px;
+        right: 10px;
+        width: 45px;
+        height: 45px;
+      }
+
+      .breadcrumb {
+        font-size: 0.85rem;
+      }
+
+      .metodo-pago {
+        grid-template-columns: 1fr;
+      }
+
+      .bancos {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+    }
+  </style>
+</Layout>

@@ -1,0 +1,25 @@
+{
+  "name": "pnp-portal",
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/node": "^8.3.3",
+    "@astrojs/vercel": "^7.8.2",
+    "@rolldown/binding-win32-x64-msvc": "^1.1.2",
+    "@supabase/supabase-js": "^2.43.0",
+    "astro": "^4.16.1",
+    "jspdf": "^2.5.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.1",
+    "tailwindcss": "^4.3.1",
+    "typescript": "^5.5.2"
+  }
+}

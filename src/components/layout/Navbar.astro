@@ -1,0 +1,208 @@
+---
+// Navbar.astro
+---
+
+<header id="main-header">
+  <div class="container branding">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <div class="logo">
+        <img src="/JS/imagenes/images.png" alt="Escudo Nacional del Perú">
+      </div>
+      <div>
+        <h1 class="site-title">Policía Nacional del Perú</h1>
+      </div>
+    </div>
+    
+    <!-- Mobile Auth (visible only on mobile) -->
+    <div id="mobile-auth-section" class="mobile-only">
+      <!-- Dynamic hydration -->
+    </div>
+  </div>
+  <nav aria-label="principal">
+    <div class="container nav-wrap">
+      <!-- Hamburger Menu Button -->
+      <button class="menu-toggle" id="btnMenu" aria-label="Abrir menú" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <div id="main-menu" class="menu" role="menubar">
+        <a role="menuitem" href="/#institucional">Institucional</a>
+        <a role="menuitem" href="/#servicios">Servicios</a>
+        <a role="menuitem" href="/#tramites">Trámites</a>
+        <a role="menuitem" href="/#noticias">Noticias</a>
+        <a role="menuitem" href="https://denuncias.servicios.gob.pe/?gobpe_id=283" target="_blank">Denuncia en línea</a>
+      </div>
+
+      <div class="nav-actions">
+        <form class="search" role="search" onsubmit="event.preventDefault(); window.doSearch && window.doSearch();">
+          <label class="sr-only" for="q">Buscar</label>
+          <input id="q" name="q" type="search" placeholder="Buscar en el portal…" aria-label="Buscar en el portal" />
+          <button class="btn" type="submit">Buscar</button>
+        </form>
+
+        <!-- Desktop Auth -->
+        <div id="desktop-auth-section" class="desktop-only">
+          <!-- Dynamic hydration -->
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<script>
+  import { supabase } from '../../lib/supabase/client';
+
+
+
+  // 2. Mobile Menu Toggle
+  const btnMenu = document.getElementById('btnMenu');
+  const mainMenu = document.getElementById('main-menu');
+  if (btnMenu && mainMenu) {
+    btnMenu.addEventListener('click', () => {
+      const open = mainMenu.classList.toggle('open');
+      btnMenu.classList.toggle('active');
+      btnMenu.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!btnMenu.contains(e.target as Node) && !mainMenu.contains(e.target as Node)) {
+        mainMenu.classList.remove('open');
+        btnMenu.classList.remove('active');
+        btnMenu.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    mainMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        mainMenu.classList.remove('open');
+        btnMenu.classList.remove('active');
+        btnMenu.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+
+  // 3. Dynamic Auth Hydration
+  const desktopAuth = document.getElementById('desktop-auth-section');
+  const mobileAuth = document.getElementById('mobile-auth-section');
+
+  const renderAuth = (session: any) => {
+    if (session) {
+      const user = session.user;
+      const userMeta = user.user_metadata;
+      const nombreCompleto = userMeta?.nombre_completo || 'Usuario';
+      const dni = userMeta?.dni || '---';
+
+      const userMenuHtml = `
+        <div class="user-menu">
+          <button class="user-menu-button dropdown-toggle-btn" aria-label="Menú de usuario">
+            <i class="fas fa-user-circle"></i>
+            <span>${nombreCompleto.split(' ')[0]}</span>
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          
+          <div class="user-menu-dropdown">
+            <div class="user-info">
+              <div class="user-name">${nombreCompleto}</div>
+              <div class="user-dni">DNI: <span>${dni}</span></div>
+            </div>
+            
+            <div class="theme-toggle-item">
+              <span>
+                <i class="fas fa-moon"></i>
+                Tema Oscuro
+              </span>
+              <label class="theme-switch">
+                <input type="checkbox" class="themeToggleSwitch">
+                <span class="theme-slider"></span>
+              </label>
+            </div>
+            
+            <a href="/mis-tramites">
+              <i class="fas fa-tasks"></i>
+              Mis Trámites
+            </a>
+            
+            <a href="/seguimiento-tramite">
+              <i class="fas fa-search"></i>
+              Seguimiento
+            </a>
+            
+            <button class="logout-btn">
+              <i class="fas fa-sign-out-alt"></i>
+              Cerrar Sesión
+            </button>
+          </div>
+        </div>
+      `;
+
+      if (desktopAuth) desktopAuth.innerHTML = userMenuHtml;
+      if (mobileAuth) mobileAuth.innerHTML = userMenuHtml;
+
+      // Set up click toggles for both dropdowns
+      document.querySelectorAll('.dropdown-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const dropdown = btn.nextElementSibling;
+          dropdown?.classList.toggle('show');
+          
+          // Close other dropdowns
+          document.querySelectorAll('.user-menu-dropdown').forEach(d => {
+            if (d !== dropdown) d.classList.remove('show');
+          });
+        });
+      });
+
+      document.addEventListener('click', () => {
+        document.querySelectorAll('.user-menu-dropdown').forEach(d => {
+          d.classList.remove('show');
+        });
+      });
+
+      // Theme toggle checkbox setup for both
+      document.querySelectorAll('.themeToggleSwitch').forEach((toggle: any) => {
+        toggle.checked = document.documentElement.getAttribute('data-theme') === 'dark';
+        toggle.addEventListener('change', () => {
+          const isDark = toggle.checked;
+          const newTheme = isDark ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+          // Sync other toggles
+          document.querySelectorAll('.themeToggleSwitch').forEach((other: any) => {
+            if (other !== toggle) other.checked = isDark;
+          });
+        });
+      });
+
+      // Logout handler for both
+      document.querySelectorAll('.logout-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const { error } = await supabase.auth.signOut();
+          if (error) console.error('Error signing out:', error.message);
+          window.location.href = '/';
+        });
+      });
+
+    } else {
+      const loginButtonHtml = `
+        <a href="/login" class="login-button">
+          <i class="fas fa-sign-in-alt"></i>
+          Iniciar Sesión
+        </a>
+      `;
+      if (desktopAuth) desktopAuth.innerHTML = loginButtonHtml;
+      if (mobileAuth) mobileAuth.innerHTML = loginButtonHtml;
+    }
+  };
+
+  // Get current user session
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    renderAuth(session);
+  });
+
+  // Listen for auth changes
+  supabase.auth.onAuthStateChange((_event, session) => {
+    renderAuth(session);
+  });
+</script>

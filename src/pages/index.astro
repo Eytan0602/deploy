@@ -1,0 +1,150 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Policía Nacional del Perú" bodyClass="">
+  <!-- Hero Section -->
+  <section class="hero" id="institucional">
+    <div class="cover" aria-hidden="true"></div>
+    <div class="overlay" aria-hidden="true"></div>
+    <div class="container content">
+      <div>
+        <h1>Servir y proteger: información, trámites y servicios en un solo lugar</h1>
+        <p>Este proyecto está inspirado en el portal institucional de la Policía Nacional del Perú. No representa un portal oficial de la institución.</p>
+        <div class="cta-row">
+          <a class="btn" href="#servicios">Servicios más consultados</a>
+          <a class="btn alt" href="https://denuncias.servicios.gob.pe/?gobpe_id=283" target="_blank">Denunciar en línea</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Servicios Section -->
+  <section class="section" id="servicios">
+    <div class="container">
+      <h2>Servicios más consultados</h2>
+      <div class="grid">
+        <article class="card">
+          <span class="chip">Online</span>
+          <h3>Denuncia policial digital</h3>
+          <p>Registra denuncias no flagrantes y obtén el cargo digital.</p>
+          <a class="link" href="https://denuncias.servicios.gob.pe/?gobpe_id=283" target="_blank">Ir al servicio →</a>
+        </article>
+        <article class="card">
+          <span class="chip">Pago</span>
+          <h3>Certificado de antecedentes policiales</h3>
+          <p>Solicita y descarga tu certificado para trámites.</p>
+          <a class="link" href="https://www.gob.pe/324-certificado-de-antecedentes-policiales-para-viaje-o-uso-en-el-extranjero" target="_blank">Solicitar →</a>
+        </article>
+        <article class="card">
+          <span class="chip">Trámites</span>
+          <h3>Permiso lunas polarizadas</h3>
+          <p>Consulta el estado de tu permiso para lunas polarizadas y realiza los pagos.</p>
+          <a class="link" href="/dni">Consultar →</a>
+        </article>
+        <article class="card">
+          <span class="chip">Orientación</span>
+          <h3>Comisarías y teléfonos</h3>
+          <p>Busca la comisaría más cercana a tu ubicación.</p>
+          <a class="link" href="https://www.gob.pe/912-ubicar-la-comisaria-mas-cercanas" target="_blank">Ver mapa →</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Noticias Section -->
+  <section class="section alt" id="noticias">
+    <div class="container">
+      <h2>Noticias y comunicados</h2>
+      <div class="grid">
+        <article class="news-card">
+          <img alt="Foto noticia 1" src="/JS/imagenes/noticia1.jpeg" />
+          <div class="body">
+            <div class="news-meta">08 Ago 2025 • Institucional</div>
+            <h3>Comprometidos con la Seguridad del País, la Policía Nacional del Perú inaugura la III RECOPOL 2025</h3>
+            <p>El alto mando institucional evalúa avances estratégicos y proyecta acciones clave para fortalecer la seguridad ciudadana y combatir la criminalidad</p>
+            <a class="link" href="https://www.gob.pe/institucion/pnp/noticias/1182903-comprometidos-con-la-seguridad-del-pais-la-policia-nacional-del-peru-inaugura-la-iii-recopol-2025" target="_blank">Leer más →</a>
+          </div>
+        </article>
+        <article class="news-card">
+          <img alt="Foto noticia 2" src="/JS/imagenes/noticia2.jpg">
+          <div class="body">
+            <div class="news-meta">06 Ago 2025 • Seguridad</div>
+            <h3>Dircote PNP captura a terrorista alias "Tarazona"</h3>
+            <p>Cuenta con doce órdenes de captura vigentes.</p>
+            <a class="link" href="https://www.gob.pe/institucion/pnp/noticias/1143319-dircote-pnp-captura-a-terrorista-alias-tarazona" target="_blank">Leer más →</a>
+          </div>
+        </article>
+        <article class="news-card">
+          <img alt="Foto noticia 3" src="/JS/imagenes/1094381-0.jpeg" />
+          <div class="body">
+            <div class="news-meta">02 Ago 2025 • Tránsito</div>
+            <h3>Policía ejecuta operativo en Establecimiento Penitenciario Ancón I</h3>
+            <p>En cumplimiento al plan de operaciones "Orden y Seguridad".</p>
+            <a class="link" href="https://www.gob.pe/institucion/pnp/noticias/1094381-policia-ejecuta-operativo-en-establecimiento-penitenciario-ancon-i" target="_blank">Leer más →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trámites Section -->
+  <section class="section" id="tramites">
+    <div class="container">
+      <h2>Trámites y enlaces de interés</h2>
+      <div class="grid">
+        <article class="card">
+          <span class="chip"><i class="fas fa-search"></i> Consulta</span>
+          <h3>Seguimiento de Trámites</h3>
+          <p>Consulta el estado de tu trámite de lunas polarizadas ingresando tu DNI.</p>
+          <a class="link" href="/seguimiento-tramite">Consultar →</a>
+        </article>
+        <article class="card">
+          <h3>Transparencia</h3>
+          <p>Presupuesto, contrataciones, normatividad y más.</p>
+          <a class="link" href="https://www.transparencia.gob.pe/reportes_directos/pep_transparencia_acceso_informacion.aspx?id_entidad=13185&id_tema=49&cod_rueep=0&ver=D" target="_blank">Ir →</a>
+        </article>
+        <article class="card">
+          <h3>Mesa de partes</h3>
+          <p>Presenta documentos de manera virtual.</p>
+          <a class="link" href="https://mpd.policia.gob.pe/mesadepartesdigital/" target="_blank">Presentar →</a>
+        </article>
+        <article class="card">
+          <h3>Libro de reclamaciones</h3>
+          <p>Registra un reclamo o queja sobre la atención.</p>
+          <a class="link" href="https://reclamos.servicios.gob.pe/?institution_id=160" target="_blank">Registrar →</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <script src="/JS/js/index.js" is:inline></script>
+  <script is:inline>
+    window.doSearch = function() {
+      const q = document.getElementById('q');
+      if (!q || !q.value.trim()) {
+        alert('Ingresa un término de búsqueda.');
+        return;
+      }
+
+      const searchTerm = q.value.trim().toLowerCase();
+      const cards = document.querySelectorAll('.card');
+      let found = false;
+
+      cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        if (text.includes(searchTerm)) {
+          card.style.display = 'block';
+          found = true;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      if (!found) {
+        alert('No se encontraron resultados para: ' + searchTerm);
+        cards.forEach(card => card.style.display = 'block');
+      }
+    }
+  </script>
+</Layout>

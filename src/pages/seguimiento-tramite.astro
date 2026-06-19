@@ -1,0 +1,1025 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Seguimiento de Trámites - Policía Nacional del Perú">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="breadcrumb">
+      <a href="/"><i class="fas fa-home"></i> Inicio</a>
+      <span><i class="fas fa-chevron-right"></i></span>
+      <span>Seguimiento de Trámites</span>
+    </nav>
+
+    <div class="page-header">
+      <h1>Seguimiento de Trámites</h1>
+      <p>Consulta el estado de tu solicitud de permiso de lunas polarizadas</p>
+    </div>
+
+    <!-- Formulario de consulta -->
+    <div class="form-card" id="search-card">
+      <div class="form-header">
+        <div class="icon">
+          <i class="fas fa-search"></i>
+        </div>
+        <h2>Consultar Trámite</h2>
+        <p>Ingresa tu DNI para consultar el estado de tu trámite</p>
+      </div>
+
+      <div id="errorAlert" class="alert alert-error" style="display: none;">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="errorMessage"></span>
+      </div>
+
+      <form id="searchForm">
+        <div class="form-group">
+          <label for="dni">DNI</label>
+          <div class="input-icon">
+            <i class="fas fa-id-card"></i>
+            <input 
+              type="text" 
+              id="dni" 
+              class="form-control" 
+              placeholder="12345678"
+              maxlength="8"
+              pattern="[0-9]{8}"
+              required
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="searchSubmitBtn">
+          <i class="fas fa-search"></i>
+          <span>Consultar Estado</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Resultado del trámite -->
+    <div id="resultado-tramite" class="resultado-tramite" style="display: none;">
+      
+      <!-- MENSAJE CUANDO ES ACEPTADA -->
+      <div id="res-status-aceptada" style="display: none;" class="mensaje-aprobacion">
+        <div class="icono-aprobacion">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <h2>¡Felicitaciones!</h2>
+        <p class="mensaje-principal">
+          Estimado(a) <strong id="res-ac-nombre">---</strong>, 
+          con DNI <strong id="res-ac-dni">---</strong>
+        </p>
+        <p class="mensaje-secundario">
+          Su solicitud de permiso para lunas polarizadas ha sido <strong style="color: var(--accent-green);">ACEPTADA</strong>
+        </p>
+        <p class="mensaje-entrega">
+          Le haremos entrega del permiso de lunas polarizadas para el vehículo con placa 
+          <strong id="res-ac-placa">---</strong>
+        </p>
+        
+        <div class="numero-resolucion" id="res-ac-res-box" style="display: none;">
+          <i class="fas fa-certificate"></i>
+          <span>N° Resolución: <strong id="res-ac-res">---</strong></span>
+        </div>
+        
+        <div class="acciones-aprobacion">
+          <button id="btnDownloadPDF" class="btn-download-large" style="border:none; cursor:pointer;">
+            <i class="fas fa-file-pdf"></i>
+            Descargar Certificado en PDF
+          </button>
+          <p class="nota-pdf">
+            <i class="fas fa-info-circle"></i>
+            Este documento contiene todos sus datos y es válido como certificado oficial
+          </p>
+        </div>
+      </div>
+
+      <!-- MENSAJE CUANDO ESTÁ EN PROCESO -->
+      <div id="res-status-proceso" style="display: none;" class="mensaje-proceso">
+        <div class="icono-proceso">
+          <i class="fas fa-clock"></i>
+        </div>
+        <h2>Trámite en Espera</h2>
+        <p class="mensaje-principal">
+          Estimado(a) <strong id="res-pr-nombre">---</strong>, 
+          con DNI <strong id="res-pr-dni">---</strong>
+        </p>
+        <p class="mensaje-secundario">
+          Su solicitud está siendo evaluada por nuestro equipo. 
+          Por favor, vuelva a consultar más tarde para conocer la resolución.
+        </p>
+        <div style="padding: 1rem; background: var(--bg-secondary); border-radius: 8px; margin-top: 1.5rem;">
+          <p style="margin: 0; color: var(--text-secondary);">
+            <i class="fas fa-hourglass-half"></i>
+            El proceso de evaluación puede tomar entre 24 a 48 horas hábiles.
+          </p>
+        </div>
+      </div>
+
+      <!-- MENSAJE CUANDO ESTÁ DENEGADA -->
+      <div id="res-status-denegada" style="display: none;" class="mensaje-denegacion">
+        <div class="icono-denegacion">
+          <i class="fas fa-times-circle"></i>
+        </div>
+        <h2>Solicitud Denegada</h2>
+        <p class="mensaje-principal">
+          Estimado(a) <strong id="res-de-nombre">---</strong>, 
+          con DNI <strong id="res-de-dni">---</strong>
+        </p>
+        <p class="mensaje-secundario">
+          Lamentamos informarle que su solicitud ha sido <strong style="color: var(--accent-red);">DENEGADA</strong>
+        </p>
+        
+        <div class="motivo-denegacion">
+          <h4><i class="fas fa-exclamation-triangle"></i> Motivo de Denegación</h4>
+          <p id="res-de-motivo">---</p>
+        </div>
+      </div>
+
+      <!-- Datos del Trámite (para todos los estados) -->
+      <div class="info-section" style="margin-top: 2rem;">
+        <h3><i class="fas fa-file-alt"></i> Información del Trámite</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>DNI</label>
+            <div class="value" id="info-dni">---</div>
+          </div>
+          <div class="info-item">
+            <label>Nombre Completo</label>
+            <div class="value" id="info-nombre">---</div>
+          </div>
+          <div class="info-item">
+            <label>Placa Vehículo</label>
+            <div class="value" id="info-placa">---</div>
+          </div>
+          <div class="info-item">
+            <label>Fecha de Solicitud</label>
+            <div class="value" id="info-fecha">---</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botón para nueva consulta -->
+      <div class="actions" style="margin-top: 2rem;">
+        <button id="btnNuevaConsulta" class="btn btn-primary">
+          <i class="fas fa-search"></i>
+          Realizar Nueva Consulta
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { supabase } from '../lib/supabase/client';
+    import { jsPDF } from 'jspdf';
+
+    const form = document.getElementById('searchForm');
+    const searchCard = document.getElementById('search-card');
+    const dniInput = document.getElementById('dni') as HTMLInputElement;
+    const searchBtn = document.getElementById('searchSubmitBtn') as HTMLButtonElement;
+    const resultadoBox = document.getElementById('resultado-tramite');
+    const errorAlert = document.getElementById('errorAlert');
+    const errorMsg = document.getElementById('errorMessage');
+
+    const btnNuevaConsulta = document.getElementById('btnNuevaConsulta');
+    const btnDownloadPDF = document.getElementById('btnDownloadPDF');
+
+    let currentPermit: any = null;
+
+    // Check query params on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const dniParam = urlParams.get('dni');
+      if (dniParam && dniParam.length === 8) {
+        dniInput.value = dniParam;
+        consultar(dniParam);
+      }
+    });
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const dni = dniInput.value.trim();
+      if (dni.length !== 8) {
+        showError('Ingresa un DNI de 8 dígitos.');
+        return;
+      }
+      consultar(dni);
+    });
+
+    const consultar = async (dni: string) => {
+      try {
+        setLoading(true);
+        if (errorAlert) errorAlert.style.display = 'none';
+
+        // Query database for permits by DNI
+        const { data, error } = await supabase
+          .from('permisos_lunas_polarizadas')
+          .select('*')
+          .eq('dni', dni)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        if (!data || data.length === 0) {
+          throw new Error('No se encontraron trámites registrados con el DNI ingresado.');
+        }
+
+        currentPermit = data[0]; // Get newest request
+        const status = currentPermit.estado.toUpperCase();
+
+        // Populate common fields
+        document.getElementById('info-dni')!.textContent = currentPermit.dni;
+        document.getElementById('info-nombre')!.textContent = currentPermit.nombre_completo;
+        document.getElementById('info-placa')!.textContent = currentPermit.placa_vehiculo;
+        document.getElementById('info-fecha')!.textContent = new Date(currentPermit.created_at || currentPermit.fecha_solicitud).toLocaleDateString('es-PE');
+
+        // Hide search card and show result card
+        if (searchCard) searchCard.style.display = 'none';
+        if (resultadoBox) resultadoBox.style.display = 'block';
+
+        hideAllStatusBlocks();
+
+        if (status === 'ACEPTADA') {
+          document.getElementById('res-ac-nombre')!.textContent = currentPermit.nombre_completo;
+          document.getElementById('res-ac-dni')!.textContent = currentPermit.dni;
+          document.getElementById('res-ac-placa')!.textContent = currentPermit.placa_vehiculo;
+          
+          const resBox = document.getElementById('res-ac-res-box');
+          const resText = document.getElementById('res-ac-res');
+          if (currentPermit.numero_resolucion) {
+            resText!.textContent = currentPermit.numero_resolucion;
+            resBox!.style.display = 'inline-flex';
+          } else {
+            resBox!.style.display = 'none';
+          }
+
+          document.getElementById('res-status-aceptada')!.style.display = 'block';
+        } 
+        else if (status === 'DENEGADA') {
+          document.getElementById('res-de-nombre')!.textContent = currentPermit.nombre_completo;
+          document.getElementById('res-de-dni')!.textContent = currentPermit.dni;
+          document.getElementById('res-de-motivo')!.textContent = currentPermit.motivo_denegacion || 'No cumple con las especificaciones de seguridad vigentes.';
+          
+          document.getElementById('res-status-denegada')!.style.display = 'block';
+        } 
+        else {
+          // En proceso
+          document.getElementById('res-pr-nombre')!.textContent = currentPermit.nombre_completo;
+          document.getElementById('res-pr-dni')!.textContent = currentPermit.dni;
+          
+          document.getElementById('res-status-proceso')!.style.display = 'block';
+        }
+
+      } catch (err: any) {
+        showError(err.message || 'Error al buscar trámite.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    btnNuevaConsulta?.addEventListener('click', () => {
+      currentPermit = null;
+      if (resultadoBox) resultadoBox.style.display = 'none';
+      if (searchCard) searchCard.style.display = 'block';
+      dniInput.value = '';
+      // clean query param from URL
+      window.history.pushState({}, document.title, window.location.pathname);
+    });
+
+    btnDownloadPDF?.addEventListener('click', async () => {
+      if (!currentPermit) return;
+      await downloadCertificatePDF(btnDownloadPDF as HTMLButtonElement, currentPermit.id, currentPermit.dni, currentPermit.placa_vehiculo);
+    });
+
+    const hideAllStatusBlocks = () => {
+      ['res-status-aceptada', 'res-status-proceso', 'res-status-denegada'].forEach(id => {
+        document.getElementById(id)!.style.display = 'none';
+      });
+    };
+
+    const showError = (message: string) => {
+      if (errorAlert && errorMsg) {
+        errorMsg.textContent = message;
+        errorAlert.style.display = 'flex';
+      }
+    };
+
+    const setLoading = (loading: boolean) => {
+      if (searchBtn) {
+        searchBtn.disabled = loading;
+        searchBtn.innerHTML = loading 
+          ? `<i class="fas fa-spinner fa-spin"></i> Consultando...`
+          : `<i class="fas fa-search"></i> Consultar Estado`;
+      }
+    };
+
+    const downloadCertificatePDF = async (btn: HTMLButtonElement, permitId: string, dni: string, placa: string) => {
+      const originalText = btn.innerHTML;
+      try {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Generando...`;
+
+        // 1. Fetch DNI photo and Vehicle photo from Supabase
+        const { data: dniData } = await supabase
+          .from('solicitudes_dni')
+          .select('foto_dni')
+          .eq('dni', dni)
+          .maybeSingle();
+
+        const { data: vehiculoData } = await supabase
+          .from('vehiculos')
+          .select('foto_verificacion')
+          .eq('placa', placa)
+          .maybeSingle();
+
+        // Load Watermark Image
+        let watermarkImg: HTMLImageElement | null = null;
+        try {
+          watermarkImg = new Image();
+          watermarkImg.src = '/JS/imagenes/images.png';
+          await new Promise((resolve) => {
+            if (watermarkImg!.complete) resolve(true);
+            watermarkImg!.onload = () => resolve(true);
+            watermarkImg!.onerror = () => resolve(false);
+          });
+        } catch (e) {
+          console.error("Error loading watermark image:", e);
+        }
+
+        // Load QR Code Image (pointing to real verification URL)
+        let qrImg: HTMLImageElement | null = null;
+        try {
+          const trackingUrl = `${window.location.origin}/seguimiento-tramite?dni=${dni}`;
+          const qrDataUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(trackingUrl)}`;
+          qrImg = new Image();
+          qrImg.crossOrigin = 'anonymous';
+          qrImg.src = qrDataUrl;
+          await new Promise((resolve) => {
+            if (qrImg!.complete) resolve(true);
+            qrImg!.onload = () => resolve(true);
+            qrImg!.onerror = () => resolve(false);
+          });
+        } catch (e) {
+          console.error("Error loading QR code image:", e);
+        }
+
+        // Create PDF using jsPDF (A4 dimensions: 210 x 297 mm)
+        const doc = new jsPDF({
+          orientation: 'p',
+          unit: 'mm',
+          format: 'a4'
+        });
+
+        // Colors
+        const verdePNP = [0, 100, 0];
+        const doradoPNP = [212, 175, 55];
+
+        // Draw Top Headers
+        doc.setFillColor(verdePNP[0], verdePNP[1], verdePNP[2]);
+        doc.rect(0, 0, 210, 15, 'F');
+
+        doc.setFillColor(doradoPNP[0], doradoPNP[1], doradoPNP[2]);
+        doc.rect(0, 15, 210, 2, 'F');
+
+        // Top Header Text
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor(255, 255, 255);
+        doc.text("POLICÍA NACIONAL DEL PERÚ - DIVISIÓN DE TRÁNSITO", 105, 10, { align: 'center' });
+
+        // Watermark: Shield image with opacity
+        if (watermarkImg && watermarkImg.naturalWidth > 0) {
+          try {
+            doc.saveState();
+            // @ts-ignore
+            const gState = new doc.GState({ opacity: 0.09 });
+            doc.setGState(gState);
+            doc.addImage(watermarkImg, 'PNG', 65, 95, 80, 80);
+            doc.restoreState();
+          } catch (e) {
+            console.error("Error drawing watermark image GState:", e);
+          }
+        } else {
+          // Fallback text watermark if image fails
+          doc.setTextColor(235, 245, 235);
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(60);
+          doc.text("PNP", 105, 150, { align: 'center', angle: 45 });
+          doc.text("OFICIAL", 105, 200, { align: 'center', angle: 45 });
+        }
+
+        // Title
+        doc.setFontSize(22);
+        doc.setTextColor(verdePNP[0], verdePNP[1], verdePNP[2]);
+        doc.text("CERTIFICADO DE AUTORIZACIÓN", 105, 38, { align: 'center' });
+
+        doc.setFontSize(14);
+        doc.setTextColor(doradoPNP[0], doradoPNP[1], doradoPNP[2]);
+        doc.text("USO DE LUNAS POLARIZADAS", 105, 46, { align: 'center' });
+
+        // Resolution Code
+        doc.setFontSize(11);
+        doc.setTextColor(50, 50, 50);
+        doc.setFont('Helvetica', 'bold');
+        doc.text(`N° RESOLUCIÓN: ${currentPermit.numero_resolucion || 'PNP-2025-LUNAS-992384'}`, 105, 58, { align: 'center' });
+
+        // Outer border
+        doc.setDrawColor(verdePNP[0], verdePNP[1], verdePNP[2]);
+        doc.setLineWidth(1);
+        doc.rect(10, 23, 190, 257);
+
+        // Inner gold border
+        doc.setDrawColor(doradoPNP[0], doradoPNP[1], doradoPNP[2]);
+        doc.setLineWidth(0.5);
+        doc.rect(12, 25, 186, 253);
+
+        // Table-like structured data
+        const startY = 65;
+        const rowHeight = 7.5;
+
+        const drawDataRow = (label: string, value: string, yPos: number) => {
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(9.5);
+          doc.setTextColor(60, 60, 60);
+          doc.text(label, 20, yPos);
+          doc.setFont('Helvetica', 'normal');
+          doc.setTextColor(0, 0, 0);
+          doc.text(value, 80, yPos);
+          // light divider
+          doc.setDrawColor(220, 220, 220);
+          doc.setLineWidth(0.2);
+          doc.line(20, yPos + 2.5, 190, yPos + 2.5);
+        };
+
+        drawDataRow("TITULAR:", currentPermit.nombre_completo.toUpperCase(), startY);
+        drawDataRow("DOCUMENTO (DNI):", currentPermit.dni, startY + rowHeight);
+        drawDataRow("N° DE PLACA:", currentPermit.placa_vehiculo.toUpperCase(), startY + (rowHeight * 2));
+        drawDataRow("VEHÍCULO / MODELO:", "REGISTRADO", startY + (rowHeight * 3));
+        drawDataRow("COLOR:", "NEGRO / GRIS / BLANCO", startY + (rowHeight * 4));
+        drawDataRow("ESTADO DE AUTORIZACIÓN:", "APROBADO Y REGISTRADO", startY + (rowHeight * 5));
+
+        // Add photos and QR
+        const photosY = 112;
+
+        // Add DNI user photo if available
+        if (dniData && dniData.foto_dni) {
+          try {
+            doc.addImage(dniData.foto_dni, 'JPEG', 20, photosY, 28, 28);
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(7);
+            doc.setTextColor(100, 100, 100);
+            doc.text("FOTOGRAFÍA FACIAL", 20, photosY + 32);
+          } catch (e) {
+            console.error("Error drawing DNI photo on PDF:", e);
+          }
+        }
+
+        // Add Vehicle photo if available
+        if (vehiculoData && vehiculoData.foto_verificacion) {
+          try {
+            doc.addImage(vehiculoData.foto_verificacion, 'JPEG', 60, photosY, 48, 28);
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(7);
+            doc.setTextColor(100, 100, 100);
+            doc.text("REGISTRO VEHICULAR", 60, photosY + 32);
+          } catch (e) {
+            console.error("Error drawing vehicle photo on PDF:", e);
+          }
+        }
+
+        // Helper to draw mock QR fallback
+        const drawMockQR = (pdfDoc: any, x: number, y: number) => {
+          pdfDoc.setDrawColor(0, 0, 0);
+          pdfDoc.setLineWidth(0.5);
+          pdfDoc.rect(x, y, 28, 28);
+          pdfDoc.setFillColor(0, 0, 0);
+          pdfDoc.rect(x + 2, y + 2, 7, 7, 'F');
+          pdfDoc.rect(x + 19, y + 2, 7, 7, 'F');
+          pdfDoc.rect(x + 2, y + 19, 7, 7, 'F');
+          pdfDoc.rect(x + 10, y + 10, 7, 7, 'F');
+          pdfDoc.rect(x + 21, y + 21, 5, 5, 'F');
+        };
+
+        // Draw Real QR Code
+        const qrX = 145;
+        if (qrImg && qrImg.naturalWidth > 0) {
+          try {
+            doc.addImage(qrImg, 'PNG', qrX, photosY, 28, 28);
+          } catch (e) {
+            console.error("Error drawing QR image on PDF:", e);
+            drawMockQR(doc, qrX, photosY);
+          }
+        } else {
+          drawMockQR(doc, qrX, photosY);
+        }
+        
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(7);
+        doc.setTextColor(100, 100, 100);
+        doc.text("VERIFICACIÓN QR", qrX, photosY + 32);
+
+        // 4 Paragraphs of text
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor(50, 50, 50);
+
+        const p1 = "PRIMERO: La Policía Nacional del Perú, a través de la Dirección de Tránsito, Transporte y Seguridad Vial, CERTIFICA que el ciudadano identificado con DNI N° " + currentPermit.dni + " y nombre completo " + currentPermit.nombre_completo.toUpperCase() + ", ha cumplido satisfactoriamente con la presentación de la documentación requerida y la verificación de antecedentes correspondientes.";
+        doc.text(doc.splitTextToSize(p1, 170), 20, 149);
+
+        const p2 = "SEGUNDO: Se AUTORIZA formalmente el uso de lunas de seguridad con láminas de oscurecimiento (polarizadas) para el vehículo de placa de rodaje " + currentPermit.placa_vehiculo.toUpperCase() + ", de conformidad con lo establecido en el Reglamento Nacional de Tránsito (D.S. N° 016-2009-MTC) y las normas técnicas conexas de seguridad vial.";
+        doc.text(doc.splitTextToSize(p2, 170), 20, 166);
+
+        const p3 = "TERCERO: El presente certificado otorga una autorización de carácter PERMANENTE y queda vinculada exclusivamente al vehículo de placa " + currentPermit.placa_vehiculo.toUpperCase() + ". No autoriza bajo ninguna circunstancia el traslado del polarizado a otra unidad ni exime al conductor de cumplir con portar este documento ante la autoridad policial competente.";
+        doc.text(doc.splitTextToSize(p3, 170), 20, 183);
+
+        const p4 = "CUARTO: La Policía Nacional del Perú se reserva las atribuciones de control, fiscalización y revocatoria inmediata de esta autorización en caso de constatarse alteraciones técnicas no declaradas en la unidad o de incurrir en faltas graves contra la seguridad y el orden público nacional.";
+        doc.text(doc.splitTextToSize(p4, 170), 20, 200);
+
+        // Warning Box
+        doc.setDrawColor(220, 50, 50);
+        doc.setLineWidth(0.4);
+        doc.setFillColor(255, 250, 250);
+        doc.rect(20, 215, 170, 11, 'FD');
+
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(220, 50, 50);
+        doc.text("ADVERTENCIA:", 23, 219);
+
+        doc.setFont('Helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        const advText = "Cualquier alteración, falsificación o uso indebido de este documento constituye delito y será sancionado conforme al Código Penal vigente. En caso de pérdida, notificar inmediatamente a la Dirección de Tránsito más cercana.";
+        doc.text(doc.splitTextToSize(advText, 144), 45, 219);
+
+        // Authority Signature Stamp
+        const stampY = 237;
+        doc.setDrawColor(0, 100, 80);
+        doc.setLineWidth(0.5);
+        doc.line(75, stampY, 135, stampY);
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(verdePNP[0], verdePNP[1], verdePNP[2]);
+        doc.text("CRNL. PNP SEGUNDO ALVARADO P.", 105, stampY + 4, { align: 'center' });
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(80, 80, 80);
+        doc.text("Director de Tránsito y Seguridad Vial de la PNP", 105, stampY + 7, { align: 'center' });
+
+        // Footer terms
+        doc.setFontSize(7.5);
+        doc.setTextColor(120, 120, 120);
+        const termsText = "Nota: Este es un certificado digital oficial e infalsificable generado de forma autorizada por el sistema virtual de la PNP. Todo oficial de tránsito puede verificar la autenticidad de esta resolución escaneando el código QR adjunto. Válido a nivel nacional.";
+        const footerLines = doc.splitTextToSize(termsText, 170);
+        doc.text(footerLines, 20, 252);
+
+        // Save PDF
+        doc.save(`Permiso_Lunas_${placa.toUpperCase()}.pdf`);
+
+      } catch (err: any) {
+        alert("Ocurrió un error al generar el PDF: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    };
+  </script>
+
+  <style>
+    .container {
+      max-width: 700px;
+      margin: 3rem auto;
+      padding: 0 2rem;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .breadcrumb a {
+      color: var(--accent-green);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .breadcrumb a:hover {
+      color: #218838;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 3rem;
+      animation: fadeInUp 0.6s ease;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .page-header h1 {
+      font-size: 2.5rem;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+
+    .page-header p {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+    }
+
+    .form-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2.5rem;
+      box-shadow: var(--shadow);
+      animation: fadeInUp 0.6s ease;
+    }
+
+    .form-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .form-header .icon {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, var(--accent-green), #218838);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .form-header .icon i {
+      font-size: 2rem;
+      color: white;
+    }
+
+    .form-header h2 {
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-header p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .input-icon {
+      position: relative;
+    }
+
+    .input-icon i {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.875rem 1rem 0.875rem 3rem;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 1rem;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--accent-green);
+      box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    }
+
+    .btn {
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: var(--accent-green);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    .alert {
+      padding: 1rem 1.25rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      animation: slideIn 0.4s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .alert-error {
+      background: rgba(220, 53, 69, 0.1);
+      border: 1px solid var(--error-color);
+      color: var(--error-color);
+    }
+
+    .alert i {
+      font-size: 1.25rem;
+    }
+
+    /* ===== RESULT TRACKING SPECIFIC ===== */
+    .resultado-tramite {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2.5rem;
+      box-shadow: var(--shadow);
+      animation: fadeInUp 0.6s ease;
+    }
+
+    .mensaje-aprobacion, .mensaje-proceso, .mensaje-denegacion {
+      text-align: center;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .icono-aprobacion, .icono-proceso, .icono-denegacion {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 1.5rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icono-aprobacion i, .icono-proceso i, .icono-denegacion i {
+      font-size: 3.5rem;
+      color: white;
+    }
+
+    .icono-aprobacion {
+      background: linear-gradient(135deg, var(--accent-green), #218838);
+      box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+    }
+
+    .icono-proceso {
+      background: linear-gradient(135deg, var(--accent-yellow), #e0a800);
+      box-shadow: 0 6px 20px rgba(255, 193, 7, 0.3);
+    }
+
+    .icono-denegacion {
+      background: linear-gradient(135deg, var(--accent-red), #c82333);
+      box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+    }
+
+    .mensaje-principal {
+      font-size: 1.15rem;
+      margin-top: 1rem;
+      color: var(--text-primary);
+    }
+
+    .mensaje-secundario {
+      font-size: 1.1rem;
+      margin-top: 0.5rem;
+      color: var(--text-primary);
+    }
+
+    .mensaje-entrega {
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      color: var(--text-secondary);
+    }
+
+    .numero-resolucion {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      background: rgba(40, 167, 69, 0.1);
+      border: 1px solid var(--accent-green);
+      border-radius: 8px;
+      margin: 1.5rem auto 0;
+      font-size: 1rem;
+      color: var(--text-primary);
+    }
+
+    .numero-resolucion i {
+      color: var(--accent-green);
+      font-size: 1.3rem;
+    }
+
+    .acciones-aprobacion {
+      margin-top: 2rem;
+      text-align: center;
+    }
+
+    .btn-download-large {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1.25rem 2.5rem;
+      background: linear-gradient(135deg, var(--accent-red), #c82333);
+      color: white;
+      font-size: 1.2rem;
+      font-weight: 700;
+      border-radius: 12px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+      width: auto;
+    }
+
+    .btn-download-large:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(220, 53, 69, 0.4);
+    }
+
+    .btn-download-large i {
+      font-size: 1.5rem;
+    }
+
+    .nota-pdf {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .nota-pdf i {
+      color: var(--accent-green);
+    }
+
+    .motivo-denegacion {
+      background: rgba(220, 53, 69, 0.1);
+      border: 2px solid var(--accent-red);
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-top: 2rem;
+      text-align: left;
+    }
+
+    .motivo-denegacion h4 {
+      color: var(--accent-red);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.1rem;
+    }
+
+    .motivo-denegacion p {
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    .info-section {
+      margin-bottom: 2rem;
+    }
+
+    .info-section h3 {
+      color: var(--accent-green);
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    .info-item {
+      padding: 1rem;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+    }
+
+    .info-item label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+      font-weight: 600;
+    }
+
+    .info-item .value {
+      font-size: 1rem;
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .actions {
+      margin-top: 2rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 1rem;
+        margin: 2rem auto;
+      }
+
+      .form-card, .resultado-tramite {
+        padding: 1.5rem;
+      }
+
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page-header h1 {
+        font-size: 1.75rem;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .icono-aprobacion, .icono-proceso, .icono-denegacion {
+        width: 80px;
+        height: 80px;
+      }
+
+      .icono-aprobacion i, .icono-proceso i, .icono-denegacion i {
+        font-size: 2.5rem;
+      }
+
+      .btn-download-large {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+        justify-content: center;
+      }
+    }
+  </style>
+</Layout>
