@@ -794,10 +794,31 @@ import Layout from '../layouts/Layout.astro';
       animation: fadeInUp 0.6s ease;
     }
 
-    .mensaje-aprobacion, .mensaje-proceso, .mensaje-denegacion {
+    .mensaje-aprobacion {
       text-align: center;
-      padding-bottom: 2rem;
-      border-bottom: 1px solid var(--border-color);
+      padding: 2rem;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(40, 167, 69, 0.05), rgba(33, 136, 56, 0.02));
+      border: 2px solid var(--accent-green);
+      margin-bottom: 2rem;
+    }
+
+    .mensaje-proceso {
+      text-align: center;
+      padding: 2rem;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(255, 193, 7, 0.05), rgba(224, 168, 0, 0.02));
+      border: 2px solid var(--accent-yellow);
+      margin-bottom: 2rem;
+    }
+
+    .mensaje-denegacion {
+      text-align: center;
+      padding: 2rem;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(220, 53, 69, 0.05), rgba(200, 35, 51, 0.02));
+      border: 2px solid var(--accent-red);
+      margin-bottom: 2rem;
     }
 
     .icono-aprobacion, .icono-proceso, .icono-denegacion {
