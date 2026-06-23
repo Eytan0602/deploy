@@ -3,6 +3,8 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Validación DNI - Policía Nacional del Perú" bodyClass="no-hero">
+  <!-- Face API para validación de rostros -->
+  <script is:inline src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
   <div class="container">
     <nav class="breadcrumb" aria-label="breadcrumb">
       <a href="/"><i class="fas fa-home"></i> Inicio</a>
@@ -208,6 +210,7 @@ import Layout from '../layouts/Layout.astro';
 
   <script>
     import { supabase } from '../lib/supabase/client';
+    declare const faceapi: any;
 
     // 1. CAPTCHA GENERATOR
     const canvas = document.getElementById('captchaCanvas') as HTMLCanvasElement;
@@ -339,6 +342,30 @@ import Layout from '../layouts/Layout.astro';
     const base64Input = document.getElementById('fotoDniBase64') as HTMLInputElement;
 
     let stream: MediaStream | null = null;
+    let modelsLoaded = false;
+
+    // Cargar modelos de IA para detectar rostros
+    const loadModels = async () => {
+      if (modelsLoaded) return;
+      try {
+        if (btnCapturarFoto) {
+           btnCapturarFoto.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando IA...';
+           (btnCapturarFoto as HTMLButtonElement).disabled = true;
+        }
+        await faceapi.nets.tinyFaceDetector.loadFromUri('https://vladmandic.github.io/face-api/model/');
+        modelsLoaded = true;
+        if (btnCapturarFoto) {
+           btnCapturarFoto.innerHTML = '<i class="fas fa-camera"></i> Capturar Foto';
+           (btnCapturarFoto as HTMLButtonElement).disabled = false;
+        }
+      } catch (err) {
+        console.error("Error al cargar modelos de face-api", err);
+        if (btnCapturarFoto) {
+           btnCapturarFoto.innerHTML = '<i class="fas fa-camera"></i> Capturar Foto';
+           (btnCapturarFoto as HTMLButtonElement).disabled = false;
+        }
+      }
+    };
 
     btnHabilitarCamara?.addEventListener('click', async () => {
       try {
@@ -347,6 +374,8 @@ import Layout from '../layouts/Layout.astro';
         });
         if (video) video.srcObject = stream;
         if (cameraModal) cameraModal.style.display = 'flex';
+        
+        loadModels(); // Iniciar carga de modelos en segundo plano
       } catch (err) {
         alert('No se pudo acceder a la cámara. Por favor verifica los permisos de tu navegador.');
       }
@@ -363,8 +392,14 @@ import Layout from '../layouts/Layout.astro';
 
     btnCerrarCamara?.addEventListener('click', stopCamera);
 
-    const capturePhoto = () => {
+    const capturePhoto = async () => {
       if (!photoCanvas || !video) return;
+
+      if (btnCapturarFoto) {
+        btnCapturarFoto.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analizando rostro...';
+        (btnCapturarFoto as HTMLButtonElement).disabled = true;
+      }
+
       const ctx = photoCanvas.getContext('2d');
       if (!ctx) return;
 
@@ -376,6 +411,28 @@ import Layout from '../layouts/Layout.astro';
       ctx.scale(-1, 1);
       ctx.drawImage(video, 0, 0, photoCanvas.width, photoCanvas.height);
       
+      // VALIDACIÓN FACIAL
+      let faceDetected = true; // Por defecto true por si falla la carga de modelos
+      if (typeof faceapi !== 'undefined' && modelsLoaded) {
+        try {
+          const detection = await faceapi.detectSingleFace(photoCanvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.3 }));
+          if (!detection) {
+            faceDetected = false;
+          }
+        } catch(e) {
+          console.error("Error en detección facial", e);
+        }
+      }
+
+      if (!faceDetected) {
+        alert("¡Alerta! No se ha detectado un rostro humano en la imagen. Por favor, asegúrate de mirar a la cámara e intenta de nuevo.");
+        if (btnCapturarFoto) {
+          btnCapturarFoto.innerHTML = '<i class="fas fa-camera"></i> Capturar Foto';
+          (btnCapturarFoto as HTMLButtonElement).disabled = false;
+        }
+        return; // Detener el proceso y no guardar la foto
+      }
+
       const base64 = photoCanvas.toDataURL('image/jpeg', 0.85);
       
       if (base64Input) base64Input.value = base64;
@@ -383,6 +440,11 @@ import Layout from '../layouts/Layout.astro';
       if (previewContainer) previewContainer.style.display = 'block';
       if (btnHabilitarCamara) btnHabilitarCamara.style.display = 'none';
       
+      if (btnCapturarFoto) {
+        btnCapturarFoto.innerHTML = '<i class="fas fa-camera"></i> Capturar Foto';
+        (btnCapturarFoto as HTMLButtonElement).disabled = false;
+      }
+
       stopCamera();
     };
 
