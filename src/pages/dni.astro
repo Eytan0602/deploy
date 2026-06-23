@@ -310,16 +310,33 @@ import Layout from '../layouts/Layout.astro';
     };
 
     const autocompletarCampos = (data: any) => {
-      (document.getElementById('nombres') as HTMLInputElement).value = data.nombres || '';
-      (document.getElementById('apellido_paterno') as HTMLInputElement).value = data.apellido_paterno || '';
-      (document.getElementById('apellido_materno') as HTMLInputElement).value = data.apellido_materno || '';
-      (document.getElementById('fechaNacimiento') as HTMLInputElement).value = data.fecha_nacimiento || '';
-      (document.getElementById('genero') as HTMLInputElement).value = data.sexo === 'M' ? 'MASCULINO' : 'FEMENINO';
-      (document.getElementById('direccion') as HTMLInputElement).value = data.direccion || '';
-      (document.getElementById('ubigeo') as HTMLInputElement).value = data.ubigeo_reniec || '';
-      (document.getElementById('distrito') as HTMLInputElement).value = data.distrito || '';
-      (document.getElementById('provincia') as HTMLInputElement).value = data.provincia || '';
-      (document.getElementById('departamento') as HTMLInputElement).value = data.departamento || '';
+      const mapeo = [
+        { id: 'nombres', val: data.nombres },
+        { id: 'apellido_paterno', val: data.apellido_paterno },
+        { id: 'apellido_materno', val: data.apellido_materno },
+        { id: 'fechaNacimiento', val: data.fecha_nacimiento },
+        { id: 'genero', val: data.sexo ? (data.sexo === 'M' ? 'MASCULINO' : 'FEMENINO') : '' },
+        { id: 'direccion', val: data.direccion },
+        { id: 'ubigeo', val: data.ubigeo_reniec || data.ubigeo_sunat },
+        { id: 'distrito', val: data.distrito },
+        { id: 'provincia', val: data.provincia },
+        { id: 'departamento', val: data.departamento }
+      ];
+
+      mapeo.forEach(item => {
+        const field = document.getElementById(item.id) as HTMLInputElement;
+        if (field) {
+          field.value = item.val || '';
+          if (!item.val) {
+            field.removeAttribute('readonly');
+            field.style.border = '2px solid var(--accent-yellow)';
+            field.placeholder = 'Por favor complete este campo';
+          } else {
+            field.setAttribute('readonly', 'true');
+            field.style.border = '';
+          }
+        }
+      });
     };
 
     const limpiarCampos = () => {

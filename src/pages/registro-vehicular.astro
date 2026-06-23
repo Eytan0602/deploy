@@ -307,13 +307,30 @@ import Layout from '../layouts/Layout.astro';
         if (result.success && result.data) {
           const data = result.data;
           
-          (document.getElementById('marca') as HTMLInputElement).value = data.marca || '';
-          (document.getElementById('modelo') as HTMLInputElement).value = data.modelo || '';
-          (document.getElementById('anio') as HTMLInputElement).value = data.anio || '';
-          (document.getElementById('color') as HTMLInputElement).value = data.color || '';
-          (document.getElementById('motor') as HTMLInputElement).value = data.motor || '';
-          (document.getElementById('serie') as HTMLInputElement).value = data.serie || '';
-          (document.getElementById('vin') as HTMLInputElement).value = data.vin || '';
+          const mapeo = [
+            { id: 'marca', val: data.marca },
+            { id: 'modelo', val: data.modelo },
+            { id: 'anio', val: data.anio && data.anio !== 0 && data.anio !== '0' ? data.anio : '' },
+            { id: 'color', val: data.color },
+            { id: 'motor', val: data.motor },
+            { id: 'serie', val: data.serie },
+            { id: 'vin', val: data.vin }
+          ];
+
+          mapeo.forEach(item => {
+            const field = document.getElementById(item.id) as HTMLInputElement;
+            if (field) {
+              field.value = item.val || '';
+              if (!item.val) {
+                field.removeAttribute('readonly');
+                field.style.border = '2px solid var(--accent-yellow)';
+                field.placeholder = 'Por favor complete este campo';
+              } else {
+                field.setAttribute('readonly', 'true');
+                field.style.border = '';
+              }
+            }
+          });
 
           if (statusSpan) statusSpan.style.display = 'block';
           showAlert('Vehículo verificado exitosamente en la SUNARP', 'success');
