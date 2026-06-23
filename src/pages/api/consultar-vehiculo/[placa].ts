@@ -69,8 +69,16 @@ export const GET: APIRoute = async ({ params }) => {
       throw new Error(`Servidor Factiliza respondió con código ${response.status}`);
     }
 
-    const data = await response.json();
-    return new Response(JSON.stringify(data), {
+    const rawData = await response.json();
+    
+    // Mapeo de campos para compatibilidad con el frontend
+    if (rawData.success && rawData.data) {
+      if (!rawData.data.anio) {
+        rawData.data.anio = 0; // Prevenir error NaN al intentar parsear un año vacío
+      }
+    }
+
+    return new Response(JSON.stringify(rawData), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });

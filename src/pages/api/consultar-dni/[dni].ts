@@ -73,8 +73,18 @@ export const GET: APIRoute = async ({ params }) => {
       throw new Error(`Servidor Factiliza respondió con código ${response.status}`);
     }
 
-    const data = await response.json();
-    return new Response(JSON.stringify(data), {
+    const rawData = await response.json();
+    
+    // Mapeo de campos para compatibilidad con el frontend
+    if (rawData.success && rawData.data) {
+      if (rawData.data.numero && !rawData.data.dni) {
+        rawData.data.dni = rawData.data.numero;
+      }
+      if (!rawData.data.sexo) rawData.data.sexo = '';
+      if (!rawData.data.fecha_nacimiento) rawData.data.fecha_nacimiento = '';
+    }
+
+    return new Response(JSON.stringify(rawData), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
