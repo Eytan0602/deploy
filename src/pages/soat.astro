@@ -218,6 +218,16 @@ import Layout from '../layouts/Layout.astro';
     let typingTimer: any;
     const doneTypingInterval = 700;
 
+    const fechaFinInput = document.getElementById('fecha_fin') as HTMLInputElement;
+    const estadoSelect = document.getElementById('estado') as HTMLSelectElement;
+
+    fechaFinInput?.addEventListener('change', () => {
+      if (fechaFinInput.value) {
+        const hoy = new Date().toISOString().split('T')[0];
+        estadoSelect.value = fechaFinInput.value < hoy ? 'VENCIDO' : 'VIGENTE';
+      }
+    });
+
     window.addEventListener('DOMContentLoaded', () => {
       const savedPlaca = sessionStorage.getItem('placa_tramite');
       if (savedPlaca) {

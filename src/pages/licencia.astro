@@ -134,9 +134,18 @@ import Layout from '../layouts/Layout.astro';
     const alertDiv = document.getElementById('dynamicAlert');
 
     let typingTimer: any;
-    const doneTypingInterval = 600;
+    const doneTypingInterval = 700;
 
-    // Auto-load DNI from sessionStorage if available
+    const fechaVencimientoInput = document.getElementById('fecha_vencimiento') as HTMLInputElement;
+    const estadoInput = document.getElementById('estado') as HTMLInputElement;
+
+    fechaVencimientoInput?.addEventListener('change', () => {
+      if (fechaVencimientoInput.value) {
+        const hoy = new Date().toISOString().split('T')[0];
+        estadoInput.value = fechaVencimientoInput.value < hoy ? 'VENCIDA' : 'ACTIVA';
+      }
+    });
+
     window.addEventListener('DOMContentLoaded', () => {
       const savedDni = sessionStorage.getItem('dni_tramite');
       if (savedDni) {
