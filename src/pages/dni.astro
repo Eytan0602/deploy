@@ -75,7 +75,7 @@ import Layout from '../layouts/Layout.astro';
           <label for="fechaNacimiento">Fecha de Nacimiento <span class="required">*</span></label>
           <div class="input-icon">
             <i class="fas fa-calendar"></i>
-            <input type="date" id="fechaNacimiento" class="form-control" required readonly style="padding-left: 3rem;" />
+            <input type="date" id="fechaNacimiento" class="form-control" required style="padding-left: 3rem;" />
           </div>
           <span class="error-message">La fecha de nacimiento es obligatoria</span>
         </div>
@@ -332,8 +332,10 @@ import Layout from '../layouts/Layout.astro';
             field.style.border = '2px solid var(--accent-yellow)';
             field.placeholder = 'Por favor complete este campo';
           } else {
-            field.setAttribute('readonly', 'true');
-            field.style.border = '';
+            if (item.id !== 'fechaNacimiento') {
+              field.setAttribute('readonly', 'true');
+              field.style.border = '';
+            }
           }
         }
       });

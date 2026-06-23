@@ -196,8 +196,13 @@ import Layout from '../layouts/Layout.astro';
                 field.style.border = '2px solid var(--accent-yellow)';
                 field.placeholder = 'Por favor complete este campo';
               } else {
-                field.setAttribute('readonly', 'true');
-                field.style.border = '';
+                if (item.id !== 'fecha_expedicion' && item.id !== 'fecha_vencimiento') {
+                  field.setAttribute('readonly', 'true');
+                  field.style.border = '';
+                } else {
+                  field.removeAttribute('readonly');
+                  field.style.border = '';
+                }
               }
             }
           });
