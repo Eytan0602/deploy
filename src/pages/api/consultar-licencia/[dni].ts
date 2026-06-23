@@ -69,8 +69,19 @@ export const GET: APIRoute = async ({ params }) => {
       throw new Error(`Servidor Factiliza respondió con código ${response.status}`);
     }
 
-    const data = await response.json();
-    return new Response(JSON.stringify(data), {
+    const rawData = await response.json();
+    
+    if (rawData.status === 200) {
+      rawData.success = true;
+    }
+    
+    if (rawData.data && rawData.data.licencia && rawData.data.licencia.estado) {
+      if (rawData.data.licencia.estado.toUpperCase() === 'VIGENTE') {
+        rawData.data.licencia.estado = 'ACTIVA';
+      }
+    }
+
+    return new Response(JSON.stringify(rawData), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });

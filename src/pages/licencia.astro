@@ -174,17 +174,33 @@ import Layout from '../layouts/Layout.astro';
 
         if (result.success && result.data) {
           const data = result.data;
-          const lic = data.licencia;
-
           (document.getElementById('nombre_completo') as HTMLInputElement).value = data.nombre_completo || '';
-          (document.getElementById('numero_licencia') as HTMLInputElement).value = lic.numero || '';
-          (document.getElementById('categoria') as HTMLInputElement).value = lic.categoria || '';
-          
-          if (lic.fecha_expedicion) (document.getElementById('fecha_expedicion') as HTMLInputElement).value = convertirFecha(lic.fecha_expedicion);
-          if (lic.fecha_vencimiento) (document.getElementById('fecha_vencimiento') as HTMLInputElement).value = convertirFecha(lic.fecha_vencimiento);
-          
-          (document.getElementById('estado') as HTMLInputElement).value = lic.estado || 'ACTIVA';
-          (document.getElementById('restricciones') as HTMLInputElement).value = lic.restricciones || 'Ninguna';
+          const lic = data.licencia || {};
+
+          const mapeo = [
+            { id: 'nombre_completo', val: data.nombre_completo },
+            { id: 'numero_licencia', val: lic.numero },
+            { id: 'categoria', val: lic.categoria },
+            { id: 'fecha_expedicion', val: lic.fecha_expedicion ? convertirFecha(lic.fecha_expedicion) : '' },
+            { id: 'fecha_vencimiento', val: lic.fecha_vencimiento ? convertirFecha(lic.fecha_vencimiento) : '' },
+            { id: 'estado', val: lic.estado || 'ACTIVA' },
+            { id: 'restricciones', val: lic.restricciones || 'Ninguna' }
+          ];
+
+          mapeo.forEach(item => {
+            const field = document.getElementById(item.id) as HTMLInputElement;
+            if (field) {
+              field.value = item.val || '';
+              if (!item.val) {
+                field.removeAttribute('readonly');
+                field.style.border = '2px solid var(--accent-yellow)';
+                field.placeholder = 'Por favor complete este campo';
+              } else {
+                field.setAttribute('readonly', 'true');
+                field.style.border = '';
+              }
+            }
+          });
 
           if (dniSuccess) dniSuccess.style.display = 'block';
           showAlert('Datos de licencia cargados correctamente', 'success');

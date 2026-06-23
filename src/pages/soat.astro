@@ -261,13 +261,32 @@ import Layout from '../layouts/Layout.astro';
         if (result.success && result.data) {
           const data = result.data;
 
-          (document.getElementById('aseguradora') as HTMLInputElement).value = data.nombre_compania || '';
-          (document.getElementById('fecha_inicio') as HTMLInputElement).value = data.fecha_inicio || '';
-          (document.getElementById('fecha_fin') as HTMLInputElement).value = data.fecha_fin || '';
-          (document.getElementById('numero_poliza') as HTMLInputElement).value = data.numero_poliza || '';
-          (document.getElementById('codigo_aseguradora') as HTMLInputElement).value = data.codigo_sbs_aseguradora || '';
-          (document.getElementById('codigoSbs') as HTMLInputElement).value = data.codigo_sbs_aseguradora || '';
-          (document.getElementById('estado') as HTMLSelectElement).value = data.estado || 'VIGENTE';
+          const mapeo = [
+            { id: 'aseguradora', val: data.nombre_compania },
+            { id: 'fecha_inicio', val: data.fecha_inicio ? convertirFecha(data.fecha_inicio) : '' },
+            { id: 'fecha_fin', val: data.fecha_fin ? convertirFecha(data.fecha_fin) : '' },
+            { id: 'numero_poliza', val: data.numero_poliza },
+            { id: 'codigo_aseguradora', val: data.codigo_sbs_aseguradora },
+            { id: 'codigoSbs', val: data.codigo_sbs_aseguradora },
+            { id: 'estado', val: data.estado || 'VIGENTE' }
+          ];
+
+          mapeo.forEach(item => {
+            const field = document.getElementById(item.id) as HTMLInputElement | HTMLSelectElement;
+            if (field) {
+              field.value = item.val || '';
+              if (item.id !== 'estado') {
+                if (!item.val) {
+                  field.removeAttribute('readonly');
+                  field.style.border = '2px solid var(--accent-yellow)';
+                  field.placeholder = 'Por favor complete este campo';
+                } else {
+                  field.setAttribute('readonly', 'true');
+                  field.style.border = '';
+                }
+              }
+            }
+          });
 
           if (data.estado.toUpperCase() === 'VIGENTE') {
             if (statusSpan) statusSpan.style.display = 'block';
@@ -297,6 +316,14 @@ import Layout from '../layouts/Layout.astro';
         const field = document.getElementById(id) as HTMLInputElement;
         if (field) field.value = '';
       });
+    };
+
+    const convertirFecha = (fechaStr: string) => {
+      if (!fechaStr) return '';
+      if (fechaStr.includes('-')) return fechaStr; // Ya está en formato YYYY-MM-DD
+      const partes = fechaStr.split('/');
+      if (partes.length !== 3) return '';
+      return `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
     };
 
     form?.addEventListener('submit', async (e) => {
